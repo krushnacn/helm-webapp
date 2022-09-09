@@ -34,5 +34,13 @@ pipeline {
                 sh "docker rmi $registry:$BUILD_NUMBER"
             }
         }
+        stage('Deploy on kubernetes') {
+            steps {
+                sh 'helm upgrade --install webapp-prod /var/lib/jenkins/workspace/kubernetes-cicd/webapp -f /var/lib/jenkins/workspace/kubernetes-cicd/frontend/values.yaml'
+                sh 'export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=webapp,app.kubernetes.io/instance=webapp-prod" -o jsonpath="{.items[0].metadata.name}")'
+                sh 'export CONTAINER_PORT=$(kubectl get pod --namespace default $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")'
+                sh 'kubectl --namespace default port-forward $POD_NAME 8080:$CONTAINER_PORT'
+            }
+        }
     }
 }
