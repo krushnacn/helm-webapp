@@ -1,0 +1,13 @@
+containerPort: 8080
+livenessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  failureThreshold: 1
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  failureThreshold: 1
+  periodSeconds: 10
