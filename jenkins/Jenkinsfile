@@ -1,0 +1,38 @@
+pipeline {
+    environment {
+        registry = 'krushnacn/ob-webapp'
+        registryCredential = 'krushnacn'
+        dockerImage = ''
+    }
+    agent any
+    stages {
+        stage('Cloning Git') {
+            steps {
+                git 'https://github.com/krushnacn/helm-webapp.git'
+            }
+        }
+        stage('Building image') {
+            steps {
+                dir('/var/lib/jenkins/workspace/kubernetes-cicd/frontend'){
+                script {
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                }
+                }
+            }
+        }
+        stage('Deploy image') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Cleaning up') {
+            steps {
+                sh "docker rmi $registry:$BUILD_NUMBER"
+            }
+        }
+    }
+}
